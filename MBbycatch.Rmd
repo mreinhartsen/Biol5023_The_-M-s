@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r Packages}
-#require(tidyverse)
+require(tidyverse)
 
 rm(list=ls())                                                      # Clears R workspace
    
@@ -41,10 +41,20 @@ mydata <- mydata %>%
 ```
 
 ```{r Calculating % by meshsize}
-mydata2<-mydata%>%filter(gear_type=="Gillnet",!is.na(common_name),!is.na(abundance),!is.na(meshsize_inch))%>%
-  group_by(meshsize_inch)%>% mutate(total_catch=sum(abundance))%>%
-  group_by(meshsize_inch,common_name,total_catch)%>%
-  summarise(number=sum(abundance),catch_perc=number/first(total_catch))%>% arrange(meshsize_inch,desc(catch_perc))%>%data.frame()
+
+mydata.sub <- select(mydata, gear_type, common_name, abundance, meshsize_inch) %>% 
+  filter(gear_type == "Gillnet", 
+         !is.na(common_name), !is.na(abundance), !is.na(meshsize_inch))
+
+mydata2 <- mydata.sub %>% 
+  group_by(meshsize_inch) %>% 
+  mutate(total_catch = sum(abundance)) %>%
+  group_by(meshsize_inch, common_name) %>%
+  summarise(number = sum(abundance), 
+            catch_perc = number/first(total_catch)) %>%
+  arrange(meshsize_inch, desc(catch_perc)) %>% 
+  data.frame()
+
 ```
 
 ```{r Creating logical vector }
@@ -114,7 +124,6 @@ ggplot()+
   xlab("Mesh Size (inch)")+
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1))+
     scale_x_discrete(limits= c("1.375", "1.5", "2.75", "2.875", "3", "5.5"))+
-  guide
   theme(panel.background = element_blank(),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),axis.line = element_line(colour = "black"))
 
 ggplot(data = mydata2)+
