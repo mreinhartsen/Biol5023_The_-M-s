@@ -10,14 +10,14 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r Packages}
-require(tidyverse)
-
-rm(list=ls())                                                      # Clears R workspace
+x <- Sys.info()
+if(x[1]=="Linux")
+{rm(list=ls())                                                      # Clears R workspace
    
 #install.packages("tidyverse", dependencies=TRUE)                   # Run once, then comment
 tidyverse <- c("ggplot2","dplyr","tidyr","readr","purrr","tibble","stringr") # Ubuntu tidyverse work around
 lapply(tidyverse, require, character.only = TRUE)                  # Ubuntu tidyverse work around
-rm(list=ls()) 
+rm(list=ls()) } else {require(tidyverse)}
 
 ```
 
