@@ -3,7 +3,18 @@ title: "mk_bycatchplot"
 author: "Mike Adams"
 date: "January 26, 2018"
 output: html_document
+Q.1. Is the mesh size selectivity in the literature reflected in the results this summer?
+Q.2. Is there a correlation between CPU derived abundance and tide height?
+Q.3. Is by catch for certain species(or across the board) higher on the tide side than lakeside due to the flow effects of the gates)
+
+
+
+
+
 ---
+```{r}
+
+```
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
