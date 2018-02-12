@@ -19,8 +19,10 @@ Q.3. Is by catch for certain species(or across the board) higher on the tide sid
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
+Question:
+1. What is the proportion of bycatch of each Gillnet meshsize.
 ```{r Packages}
+#switch to detect system type and load packages/library
 x <- Sys.info()
 if(x[1]=="Linux")
 {rm(list=ls())                                                      # Clears R workspace
