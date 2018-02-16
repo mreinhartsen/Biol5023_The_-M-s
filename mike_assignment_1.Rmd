@@ -25,6 +25,8 @@ library(lubridate)
 
 ```{r Read RDS}
 blpw.all <- readRDS("blpw.all.RDS")
+blpw.all$year <- parse_integer(blpw.all$year)
+blpw.all$month <- parse_integer(blpw.all$month)
 
 ```
 
@@ -36,11 +38,19 @@ ggplot(blpw.all)+
 ```
 
 ```{r Select out Variables date mass recap locatation}
-blpw.some <- select(blpw.all, -age)
+blpw.some <- select(blpw.all, -age) %>%
+  mutate(date = make_datetime(year, month, day))
+```
+
+```{r }
+
+ggplot(blpw.some)+
+  geom_point(aes(date, mass), colour = blpw.some$band)+
+  facet_grid(. ~ location)
+
 ```
 
 ```{r}
 
-
-```
+  
 
