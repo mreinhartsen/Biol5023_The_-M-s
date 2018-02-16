@@ -1,0 +1,46 @@
+---
+title: "Mike's Warbler Assignment"
+author: "Mike Adams"
+date: "February 14, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages}
+#switch to detect system type and load packages/library
+x <- Sys.info()
+if(x[1]=="Linux")
+{rm(list=ls())                                                      # Clears R workspace
+   
+#install.packages("tidyverse", dependencies=TRUE)                   # Run once, then comment
+tidyverse <- c("ggplot2","dplyr","tidyr","readr","purrr","tibble","stringr") # Ubuntu tidyverse work around
+lapply(tidyverse, require, character.only = TRUE)                  # Ubuntu tidyverse work around
+rm(list=ls()) } else {require(tidyverse)}
+library(lubridate)
+```
+
+
+```{r Read RDS}
+blpw.all <- readRDS("blpw.all.RDS")
+
+```
+
+
+```{r visualize }
+ggplot(blpw.all)+
+  geom_point(aes(day, mass))+
+  facet_grid(. ~ location)
+```
+
+```{r Select out Variables date mass recap locatation}
+blpw.some <- select(blpw.all, -age)
+```
+
+```{r}
+
+
+```
+
