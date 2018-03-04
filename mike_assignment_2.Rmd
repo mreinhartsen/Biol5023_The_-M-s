@@ -1,0 +1,84 @@
+---
+title: "Mike Adams Assigment 2 GLM"
+author: "Mike Adams"
+date: "March 4, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r Packages}
+#switch to detect system type and load packages/library
+x <- Sys.info()
+if(x[1]=="Linux")
+{rm(list=ls())                                                      # Clears R workspace
+   
+#install.packages("tidyverse", dependencies=TRUE)                   # Run once, then comment
+tidyverse <- c("ggplot2","dplyr","tidyr","readr","purrr","tibble","stringr") # Ubuntu tidyverse work around
+lapply(tidyverse, require, character.only = TRUE)                  # Ubuntu tidyverse work around
+rm(list=ls()) } else {require(tidyverse)}
+```
+
+ANSWER
+```{r model }
+gen.df <- function(n = 100, b0 = 2, b1 = 3, sd.err = 1) {
+    predictor <- runif(n) - 0.5
+    response <- b0 + b1 * predictor + rnorm(n, mean = 0, sd = sd.err)
+    return(data.frame(response = response, predictor = predictor))
+}
+```
+
+```{r test}
+n.times <- 1:100
+n <- c(100, 500, 1000)
+b1 <- c(1, 2, 4, 8)
+sd.err <- c(1, 2, 4, 8)
+
+test.df <- expand.grid(n.times = n.times, n = n, b1 = b1, sd.err = sd.err)
+```
+
+```{r t value}
+for (i in 1:length(test.df$n.times)) {
+    tmp.df <- gen.df(n = test.df$n[i], b0 = 2, b1 = test.df$b1[i], sd.err = test.df$sd.err[i])
+    tmp.lm <- lm(response ~ predictor, data = tmp.df)
+    test.df$tval[i] <- summary(tmp.lm)$coefficients["predictor", "t value"]
+}
+```
+
+```{r plot t}
+q3 <- ggplot(data = test.df, aes(tval, group = b1, col = b1))
+q3 + geom_density() + xlab("t value") + ylab("Density") + facet_grid(~sd.err)
+```
+
+```{r model2}
+gen.df2 <- function(n = 100, b0 = 0, b1 = 0, sd.err = 1) {
+    predictor <- runif(n) - 0.5
+    response <- b0 + b1 * predictor + rnorm(n, mean = 0, sd = sd.err)
+    return(data.frame(response = response, predictor = predictor))
+}
+```
+
+```{r test2 }
+n.times <- 1:100
+n <- 100
+b1 <- c(0)
+sd.err <- c(1, 2, 4, 8)
+
+test.df2 <- expand.grid(n.times = n.times, n = n, b1 = b1, sd.err = sd.err)
+```
+
+```{r p value}
+for (i in 1:length(test.df2$n.times)) {
+    tmp.df2 <- gen.df2(n = test.df2$n[i], b0 = 0, b1 = test.df2$b1[i], sd.err = test.df2$sd.err[i])
+    tmp.lm2 <- lm(response ~ predictor, data = tmp.df2)
+    test.df2$pval[i] <- summary(tmp.lm2)$coefficients["predictor", "Pr(>|t|)"]
+}
+```
+
+```{r plot p}
+q4 <- ggplot(data = test.df2, aes(pval))
+q4 + geom_density() + facet_grid(~sd.err) + xlab("p value") + ylab("Density")
+```
+
