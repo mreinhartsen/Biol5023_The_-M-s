@@ -20,8 +20,12 @@ tidyverse <- c("ggplot2","dplyr","tidyr","readr","purrr","tibble","stringr") # U
 lapply(tidyverse, require, character.only = TRUE)                  # Ubuntu tidyverse work around
 rm(list=ls()) } else {require(tidyverse)}
 ```
+```{r set seed}
+set.seed(12345)
+```
 
 ANSWER
+Question 1:
 ```{r model }
 gen.df <- function(n = 100, b0 = 2, b1 = 3, sd.err = 1) {
     predictor <- runif(n) - 0.5
@@ -30,6 +34,7 @@ gen.df <- function(n = 100, b0 = 2, b1 = 3, sd.err = 1) {
 }
 ```
 
+Question 2:
 ```{r test}
 n.times <- 1:100
 n <- c(100, 500, 1000)
@@ -40,6 +45,7 @@ test.df <- expand.grid(n.times = n.times, n = n, b1 = b1, sd.err = sd.err)
 ```
 
 ```{r t value}
+
 for (i in 1:length(test.df$n.times)) {
     tmp.df <- gen.df(n = test.df$n[i], b0 = 2, b1 = test.df$b1[i], sd.err = test.df$sd.err[i])
     tmp.lm <- lm(response ~ predictor, data = tmp.df)
@@ -47,14 +53,16 @@ for (i in 1:length(test.df$n.times)) {
 }
 ```
 
+Question 3:
 ```{r plot t}
 q3 <- ggplot(data = test.df, aes(tval, group = b1, col = b1))
 q3 + geom_density() + xlab("t value") + ylab("Density") + facet_grid(~sd.err)
 ```
 
+Question 4:
 ```{r model2}
 gen.df2 <- function(n = 100, b0 = 0, b1 = 0, sd.err = 1) {
-    predictor <- runif(n) - 0.5
+  predictor <- runif(n) - 0.5
     response <- b0 + b1 * predictor + rnorm(n, mean = 0, sd = sd.err)
     return(data.frame(response = response, predictor = predictor))
 }
@@ -70,15 +78,47 @@ test.df2 <- expand.grid(n.times = n.times, n = n, b1 = b1, sd.err = sd.err)
 ```
 
 ```{r p value}
+
+
 for (i in 1:length(test.df2$n.times)) {
     tmp.df2 <- gen.df2(n = test.df2$n[i], b0 = 0, b1 = test.df2$b1[i], sd.err = test.df2$sd.err[i])
     tmp.lm2 <- lm(response ~ predictor, data = tmp.df2)
     test.df2$pval[i] <- summary(tmp.lm2)$coefficients["predictor", "Pr(>|t|)"]
 }
+
+
 ```
 
 ```{r plot p}
 q4 <- ggplot(data = test.df2, aes(pval))
-q4 + geom_density() + facet_grid(~sd.err) + xlab("p value") + ylab("Density")
+q4 + geom_density() + facet_grid(~sd.err) + 
+  xlab("p value") + ylab("Density")
+```
+
+Question 4a: Fitting the model 100 times results in the distribution seen above, which is bimodal. Fitting the model 10000 times results in the plots approaching uniform distribution.
+
+Question 4b: 
+```{r pval <= 0.05}
+
+ p5 <- test.df2 %>%
+ filter(pval <= 0.05) %>%
+  nrow() 
+p6 <- p5/nrow(test.df2)
+
+ cat("The proportion of p-values under 0.05 is",p6)
+```
+Question 4c: 
+```{r sderrpval <= 0.05}
+
+psd <-  test.df2 %>%
+ filter(pval <= 0.05) %>%
+  count(sd.err)
+
+psdp <- psd/nrow(test.df2)
+
+for (i in 1:4) {
+cat("The proportion of p-values under 0.05 is",psdp[i,2],"for an error of" ,as.character(psd[i,1]), "\n")
+}
+
 ```
 
