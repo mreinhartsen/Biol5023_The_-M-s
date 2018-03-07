@@ -1,0 +1,94 @@
+---
+title: "ResMeth_LMsim_Assignment"
+author: "Me"
+date: '2018-03-05'
+output: html_document
+---
+```{r}
+require(dplyr)
+require(ggplot2)
+set.seed(889)
+```
+
+```{r generate paramter df}
+samp.size<-c(200,500,1000)
+iteration<-1:100
+deviate<-1:4
+B1<-1:4
+B0<-0
+
+param.df<-expand.grid(samp.size=samp.size, iteration=iteration, deviate=deviate, B1=B1)
+
+B0<-rep(0,length(param.df$B1))
+param.df<-cbind(param.df,B0)
+```
+
+```{r Data Generation function}
+gen.mod <- function(n, B0, B1, dev) {
+    predictor <- runif(n) - 0.5
+    response <- B0 + B1 * predictor + rnorm(n, mean = 0, sd = dev)
+    return(data.frame(response = response, predictor = predictor))
+}
+```
+
+```{r fit the linear model to the generated data}
+
+est<-rep(NA,length(param.df$B0))
+tval<-rep(NA,length(param.df$B0))
+pval<-rep(NA,length(param.df$B0))
+results.df<-cbind(param.df,est,tval,pval)
+
+for(i in 1:length(param.df$B1))
+{
+  m1<-lm(response~predictor, data=gen.mod(n=param.df$samp.size[i],
+                                          B0=param.df$B0[i],
+                                          B1=param.df$B1[i],
+                                          dev=param.df$deviate[i]))
+
+  results.df$est[i]<-summary(m1)$coefficients["predictor","Estimate"]
+  results.df$tval[i]<-summary(m1)$coefficients["predictor","t value"]
+  results.df$pval[i]<-summary(m1)$coefficients["predictor","Pr(>|t|)"]
+}
+```
+
+```{r plotting model results}
+ggplot(results.df,aes(x=as.factor(samp.size), y=tval)) +
+  geom_boxplot() +
+  facet_grid(B1 ~ deviate, scales="free",labeller=label_both) +
+  xlab("Sample Size") +
+  ylab("T-Value") +
+  theme_bw()
+    
+  
+```
+```{r}
+results.df.sub<-results.df %>%
+  filter(samp.size == 200, B1 == 1)
+
+ggplot(results.df.sub,aes(x=as.factor(deviate), y=pval)) +
+  geom_boxplot() +
+  xlab("Deviate") +
+  ylab("P-Value") +
+  theme_bw()
+    
+```
+4a. At lower error levels, the P-value distribution is skewed towards 0. 
+As the deviate increases, the P-value distribution becomes more normal.
+At higher deviates, the distribution would likely skew to 1
+
+4b.
+```{r}
+p.prop <- results.df.sub %>%
+  filter(pval<=0.05) %>%
+  nrow()/400
+print(p.prop)
+```
+4c.
+```{r}
+p.props <- results.df.sub %>%
+  filter(pval<=0.05) %>%
+  count(deviate) %>%
+  mutate(p=n/400)
+print(p.props[,-2])
+```
+As the deviate increases, the proportion of p-values below 0.05 drops
