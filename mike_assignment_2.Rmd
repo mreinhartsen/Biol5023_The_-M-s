@@ -56,7 +56,7 @@ for (i in 1:length(test.df$n.times)) {
 Question 3:
 ```{r plot t}
 q3 <- ggplot(data = test.df, aes(tval, group = b1, col = b1))
-q3 + geom_density() + xlab("t value") + ylab("Density") + facet_grid(~sd.err)
+q3 + geom_density() + xlab("t value") + ylab("Density") + facet_grid(sd.err~n)
 ```
 
 Question 4:
