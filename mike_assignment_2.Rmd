@@ -55,8 +55,13 @@ for (i in 1:length(test.df$n.times)) {
 
 Question 3:
 ```{r plot t}
-q3 <- ggplot(data = test.df, aes(tval, group = b1, col = b1))
-q3 + geom_density() + xlab("t value") + ylab("Density") + facet_grid(sd.err~n)
+ggplot(data = test.df, aes(tval, group = b1, col = b1))+
+  geom_density() + xlab("t value") + ylab("Density")+
+  facet_grid(sd.err~n)
+
+ggplot(data = test.df, aes(as.factor(n), tval))+
+  geom_boxplot()+
+  facet_grid(b1~sd.err, scales = "free")
 ```
 
 Question 4:
@@ -70,7 +75,7 @@ gen.df2 <- function(n = 100, b0 = 0, b1 = 0, sd.err = 1) {
 
 ```{r test2 }
 n.times <- 1:100
-n <- 100
+n <- c(10,100,1000)
 b1 <- c(0)
 sd.err <- c(1, 2, 4, 8)
 
@@ -121,4 +126,5 @@ cat("The proportion of p-values under 0.05 is",psdp[i,2],"for an error of" ,as.c
 }
 
 ```
+
 
