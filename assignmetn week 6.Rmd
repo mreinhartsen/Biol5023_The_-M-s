@@ -1,0 +1,61 @@
+---
+title: "reinhartsen_week6"
+output: html_document
+---
+
+#---------------------------- ##ASSIGNMENT -----------------------------------#
+require(tidyverse)
+set.seed = 12321
+
+#Q.1
+my.df <- function(n = 200, B0 = 2, B1 = 3, sd.err = 1) {
+  predictor <- seq(-1,1, length.out=n)
+  response <- B0 + B1 * predictor + rnorm(n, mean = 0, sd = sd.err)
+  return(data.frame(response = response, predictor = predictor))}
+
+n.times <- 1:100
+n <- c(10, 50, 100)
+B1 <- c(0.2, 1, 2.7, 4, 8, 20)
+sd.err <- c(0.2, 1.5, 3, 5)
+majatest.df <- expand.grid(n.times = n.times, n = n, B1 = B1, sd.err = sd.err)
+
+#Q.2
+for (i in 1:length(majatest.df$n.times)) {
+  temp.df <- my.df(n = majatest.df$n[i], B0 = 2, B1 = majatest.df$B1[i], sd.err = majatest.df$sd.err[i])
+  temp.lm <- lm(response ~ predictor, data = temp.df)
+  majatest.df$est[i] <- summary(temp.lm)$coefficients["predictor","Estimate"]}
+
+ggplot(data = majatest.df, aes(tval, group = B1, color = B1))+
+   geom_density() + xlab("T value") + ylab("Density") + facet_grid(~sd.err)+ ggtitle("visualization, Q2")
+
+#Q.3
+
+  my.df2 <- function(n = 100, B0 = 0, B1 = 0, sd.err = 1) {
+    predictor <- runif(n) - 0.5
+    response <- B0 + B1 * predictor + rnorm(n, mean = 0, sd = sd.err)
+    return(data.frame(response = response, predictor = predictor))}
+n.times <- 1:100
+n <- c(10, 50, 100)
+B1 <- c(0)
+sd.err <- c(0.2, 1.5, 3, 5)
+
+majatest.df2 <- expand.grid(n.times = n.times, n = n, B1 = B1, sd.err = sd.err)
+for (i in 1:length(test.df2$n.times)) {
+  temp.df2 <- my.df2(n = majatest.df2$n[i], B0 = 0, B1 = majatest.df2$B1[i], sd.err = majatest.df2$sd.err[i])
+  temp.lm2 <- lm(response ~ predictor, data = temp.df2)
+  majatest.df2$pval[i] <- summary(temp.lm2)$coefficients["predictor", "Pr(>|t|)"]}
+ggplot(data = majatest.df2, aes(pval,tvalue group = n, color = n))+
+  geom_density() + facet_grid(~sd.err) + xlab("P value") + ylab("Density")+ggtitle("visualization, Q4")
+
+#Q.4B & C
+
+pvalues<- which(majatest.df2$p.val <= 0.05)
+tabulate(pvalues)
+sum(tabulate(pvalues))
+proportion<- (sum(tabulate(pvalues))/120) * 100
+print(proportion)
+ ggplot(data = majatest.df2, aes(p.val, group = n, col = n))+
+   geom_density() + facet_grid(~sd.err)+xlab("P value") + ylab("Density")+ggtitle("Q4C - sample size effect")
+
+
+

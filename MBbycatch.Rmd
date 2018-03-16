@@ -3,13 +3,13 @@ title: "mk_bycatchplot"
 author: "Mike Adams"
 date: "January 26, 2018"
 output: html_document
+Methodological:
 Q.1. Is the mesh size selectivity in the literature reflected in the results this summer?
-Q.2. Is there a correlation between CPU derived abundance and tide height?
-Q.3. Is by catch for certain species(or across the board) higher on the tide side than lakeside due to the flow effects of the gates)
-
-
-
-
+Q.1.2 Can we incorporate selectivity into our fishing effort index?
+Biological:
+Q.2. do the variables recorded in the field correlate with catch per unit effort in a pattern supported by lit? (aka tidal height range or time of year) 
+Predictive variable: time of year/ time of day/tide height
+Response variable: relative CPU per mesh size (catch/"effort", defined as gillnet set time)
 
 ---
 ```{r}
