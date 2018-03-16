@@ -30,3 +30,7 @@ arcgnsum<-arcgn%>%filter(!is.na(common_name), site %in% c("Tideside","Lakeside")
 ggplot(arcgnsum,aes(x=as.Date(date),y=cpue))+
   geom_point()+
   facet_grid(.~common_name)
+
+
+# model.results<-glm(response~predictor+predictor2,family="poisson",data=mydata)
+# summary(model.results)
