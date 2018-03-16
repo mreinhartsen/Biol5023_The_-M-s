@@ -1,0 +1,80 @@
+---
+title: "Mike's Warbler Assignment"
+author: "Mike Adams"
+date: "February 14, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Install packages
+```{r packages}
+#switch to detect system type and load packages/library
+x <- Sys.info()
+if(x[1]=="Linux")
+{rm(list=ls())                                                      # Clears R workspace
+   
+#install.packages("tidyverse", dependencies=TRUE)                   # Run once, then comment
+tidyverse <- c("ggplot2","dplyr","tidyr","readr","purrr","tibble","stringr") # Ubuntu tidyverse work around
+lapply(tidyverse, require, character.only = TRUE)                  # Ubuntu tidyverse work around
+rm(list=ls()) } else {require(tidyverse)}
+require(lubridate)
+require(scales)
+```
+
+Read RDS
+```{r Read RDS}
+blpw.all <- readRDS("blpw.all.RDS")
+blpw.all$year <- parse_integer(blpw.all$year)
+blpw.all$month <- parse_integer(blpw.all$month)
+blpw.all$date<-with(blpw.all, ymd(paste(2017,month,day,sep = "-")))
+```
+
+visualizing data
+```{r visualizing data}
+ggplot(blpw.all)+
+  geom_point(aes(day, mass))+
+  facet_grid(. ~ location)
+```
+
+Select out Variables date mass recap locatation
+```{r Select out Variables date mass recap locatation}
+blpw.some <- select(blpw.all, -age) 
+
+```
+
+visualizing data
+```{r second visualizing data}
+
+ggplot(blpw.some)+
+  geom_point(aes(date, mass), colour = blpw.some$band)+
+  facet_grid(. ~ location)
+
+```
+
+Filter for Recaps
+```{r Filter for Recaps}
+blpw.recap <- filter(blpw.all, recap == "R")
+```
+
+Relative Mass
+```{r Relative Mass}
+table1<-blpw.recap%>%group_by(band)%>%
+  arrange(date,band)%>%
+  mutate(rel_mass=mass-first(mass))%>%data.frame()
+```
+
+Final plot
+```{r  plot}
+ggplot(table1,aes(x=date,y=rel_mass,group=band))+
+  geom_point(aes(color = band))+ 
+  geom_line(aes(color = band)) +
+  facet_wrap(~location)+
+  theme(legend.position="none")+
+  xlab("Time of Year")+
+  ylab("Mass (in grams, relative to capture date")
+  
+```
+

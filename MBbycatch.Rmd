@@ -3,6 +3,7 @@ title: "mk_bycatchplot"
 author: "Mike Adams"
 date: "January 26, 2018"
 output: html_document
+<<<<<<< HEAD
 Methodological:
 Q.1. Is the mesh size selectivity in the literature reflected in the results this summer?
 Q.1.2 Can we incorporate selectivity into our fishing effort index?
@@ -10,17 +11,24 @@ Biological:
 Q.2. do the variables recorded in the field correlate with catch per unit effort in a pattern supported by lit? (aka tidal height range or time of year) 
 Predictive variable: time of year/ time of day/tide height
 Response variable: relative CPU per mesh size (catch/"effort", defined as gillnet set time)
-
+=======
 ---
-```{r}
 
-```
+Methodilogical 
+
+Q.1. Is the mesh size selectivity in the literature reflected in the results this summer?
+
+Q.2. Is there a correlation between CPU derived abundance and tide height?
+>>>>>>> d90d283db557cb001f32f1a53966b000299aaab9
+
+Q.3. Is by catch for certain species(or across the board) higher on the tide side than lakeside due to the flow effects of the gates)
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-Question:
-1. What is the proportion of bycatch of each Gillnet meshsize.
+
+Q.1
 ```{r Packages}
 #switch to detect system type and load packages/library
 x <- Sys.info()
