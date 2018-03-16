@@ -1,0 +1,153 @@
+---
+title: "mk_bycatchplot"
+author: "Mike Adams"
+date: "January 26, 2018"
+output: html_document
+Methodological:
+Q.1. Is the mesh size selectivity in the literature reflected in the results this summer?
+Q.1.2 Can we incorporate selectivity into our fishing effort index?
+Biological:
+Q.2. do the variables recorded in the field correlate with catch per unit effort in a pattern supported by lit? (aka tidal height range or time of year) 
+Predictive variable: time of year/ time of day/tide height
+Response variable: relative CPU per mesh size (catch/"effort", defined as gillnet set time)
+
+---
+```{r}
+
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Question:
+1. What is the proportion of bycatch of each Gillnet meshsize.
+```{r Packages}
+#switch to detect system type and load packages/library
+x <- Sys.info()
+if(x[1]=="Linux")
+{rm(list=ls())                                                      # Clears R workspace
+   
+#install.packages("tidyverse", dependencies=TRUE)                   # Run once, then comment
+tidyverse <- c("ggplot2","dplyr","tidyr","readr","purrr","tibble","stringr") # Ubuntu tidyverse work around
+lapply(tidyverse, require, character.only = TRUE)                  # Ubuntu tidyverse work around
+rm(list=ls()) } else {require(tidyverse)}
+
+```
+
+
+```{r Data Import}
+mydata <- read_delim("ARC_FINAL_18Jan2018.txt", 
+    "\t", escape_double = FALSE, trim_ws = TRUE, na = "NA", col_types = cols(meshsize_inch = col_character(), lowtide2_min = col_character()))
+
+```
+
+```{r Data Wrangling}
+mydata <- mydata %>% 
+  mutate(meshsize_inch = str_replace(meshsize_inch, "2.78", "2.75")) %>%
+  mutate(meshsize_inch = str_replace(meshsize_inch, "2.895", "2.875")) %>%
+  mutate(meshsize_inch = str_replace(meshsize_inch, "2.89", "2.875")) %>%
+  mutate(meshsize_inch = str_replace(meshsize_inch, "G", "1.375")) %>%
+  mutate(meshsize_inch = str_replace(meshsize_inch, "N", "1.5"))
+
+  mydata$meshsize_inch <- parse_factor(mydata$meshsize_inch, levels = unique(mydata$meshsize_inch))
+  summary(mydata$meshsize_inch)
+```
+
+```{r Calculating % by meshsize}
+
+mydata.sub <- select(mydata, gear_type, common_name, abundance, meshsize_inch) %>% 
+  filter(gear_type == "Gillnet", 
+         !is.na(common_name), !is.na(abundance), !is.na(meshsize_inch))
+
+mydata2 <- mydata.sub %>% 
+  group_by(meshsize_inch) %>% 
+  mutate(total_catch = sum(abundance)) %>%
+  group_by(meshsize_inch, common_name) %>%
+  summarise(number = sum(abundance), 
+            catch_perc = number/first(total_catch)) %>%
+  arrange(meshsize_inch, desc(catch_perc)) %>% 
+  data.frame()
+
+```
+
+```{r Creating logical vector }
+mydata2$target_species<-ifelse(mydata2$meshsize_inch=="1.375" & 
+                               mydata2$common_name=="Rainbow Smelt","TRUE",
+                        ifelse(mydata2$meshsize_inch=="1.5" & 
+                               mydata2$common_name=="Rainbow Smelt","TRUE",
+                        ifelse(mydata2$meshsize_inch=="2.75" & 
+                               mydata2$common_name=="Alewife" |
+                               mydata2$common_name=="Blueback Herring","TRUE",
+                        ifelse(mydata2$meshsize_inch=="2.875" & 
+                               mydata2$common_name=="Alewife" |
+                               mydata2$common_name=="Blueback Herring","TRUE", 
+                        ifelse(mydata2$meshsize_inch=="3" & 
+                               mydata2$common_name=="Alewife" |
+                               mydata2$common_name=="Blueback Herring","TRUE",
+                        ifelse(mydata2$meshsize_inch=="5.5" & 
+                               mydata2$common_name=="Striped Bass","TRUE",       
+                               "FALSE"))))))
+```
+
+```{r Subsetting}
+ts <- filter(mydata2, target_species == "TRUE")
+ts <- group_by(ts, meshsize_inch) %>%
+  summarize(sumcatch_perc = sum(catch_perc))
+
+bc <- filter(mydata2, target_species == "FALSE")
+bc <- group_by(bc, meshsize_inch) %>%
+  summarize(sumcatch_perc = sum(catch_perc))
+
+
+
+
+```
+
+
+```{r Plot}
+
+ggplot(data = mydata2)+
+  geom_point(aes(meshsize_inch, catch_perc),stat = "identity", size = 3)+
+  ylab("Proportion Catch")+
+  xlab("Mesh Size (inch)")+
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1))+
+    scale_x_discrete(limits= c("1.375", "1.5", "2.75", "2.875", "3", "5.5"))+
+  theme(panel.background = element_blank(),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),axis.line = element_line(colour = "black"))
+
+ggplot(data = ts)+
+  geom_point(aes(meshsize_inch, sumcatch_perc),stat = "identity", size = 3)+
+  ylab("Proportion Catch")+
+  xlab("Mesh Size (inch)")+
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1))+
+  scale_x_discrete(limits= c("1.375", "1.5", "2.75", "2.875", "3", "5.5"))+
+  theme(panel.background = element_blank(),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),axis.line = element_line(colour = "black"))
+
+ggplot(data = bc)+
+  geom_point(aes(meshsize_inch, sumcatch_perc) ,stat = "identity", size = 3)+
+  ylab("Proportion Catch")+
+  xlab("Mesh Size (inch)")+
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1))+
+    scale_x_discrete(limits= c("1.375", "1.5", "2.75", "2.875", "3", "5.5"))+
+  theme(panel.background = element_blank(),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),axis.line = element_line(colour = "black"))
+
+ggplot()+
+  geom_point(data = ts, aes(meshsize_inch, sumcatch_perc) ,stat = "identity", shape = 15, size = 3)+
+  geom_point(data = bc, aes(meshsize_inch, sumcatch_perc) ,stat = "identity", shape = 16, size = 3)+
+  ylab("Proportion Catch")+
+  xlab("Mesh Size (inch)")+
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1))+
+    scale_x_discrete(limits= c("1.375", "1.5", "2.75", "2.875", "3", "5.5"))+
+  theme(panel.background = element_blank(),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),axis.line = element_line(colour = "black"))
+
+ggplot(data = mydata2)+
+  geom_point(aes(meshsize_inch, catch_perc, colour = common_name, shape = target_species), size = 3)+
+  geom_line(aes(meshsize_inch, catch_perc, group = common_name, colour = common_name), size = 1)+
+  ylab("Proportion Catch")+
+  xlab("Mesh Size (inch)")+
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1))+
+    scale_x_discrete(limits= c("1.375", "1.5", "2.75", "2.875", "3", "5.5"))+
+  theme(panel.background = element_blank(),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),axis.line = element_line(colour = "black"))
+
+
+```
+
