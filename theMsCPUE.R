@@ -2,7 +2,7 @@
 library(lubridate)
 library(dplyr)
 library(ggplot2)
-arcfish<- read.delim("ARC_FINAL_18Jan2018.txt", na.strings = c("NA",""))
+arcfish<- read.delim("ARC_FINAL_14Feb2018.txt", na.strings = c("NA",""))
 
 # Create Dates and Times --------------------------------------------------
 names(arcfish)
@@ -82,8 +82,33 @@ arcA<-arcgnsum%>%filter(common_name=="Alewife")
 
 m1 <- lm(cpue~date,data=arcA)
 summary(m1)
-ggplot(arcA,aes(date,cpue)) +
-  geom_point()
+m1fitted =data.frame(arcA,pred=m1$fitted)
+
+
+ggplot(m1fitted) +
+  geom_point(aes(date,cpue))+
+  geom_line(aes(date,pred))
+
+
+m2 <- glm(cpue~date,data=arcA, family = "poisson")
+summary(m2)
+m2fitted =data.frame(arcA,pred=m2$fitted)
+
+
+ggplot(m2fitted) +
+  geom_point(aes(date,cpue))+
+  geom_line(aes(date,pred))
+
+# Cannot do binomial on relative abundance index!!!
+
+# m3 <- glm(cpue~date,data=arcA, family = "binomial")
+# summary(m3)
+# m3fitted =data.frame(arcA,pred=m3$fitted)
+#
+#
+# ggplot(m3fitted) +
+#   geom_point(aes(date,cpue))+
+#   geom_line(aes(date,pred))
 
 
 ggplot(arcA,aes(x=date,y=cpue))+
@@ -96,8 +121,8 @@ ggplot(arcA,aes(x=date,y=cpue))+
   # theme_bw(12)+
   # theme(axis.text.x = element_text(angle = 90, vjust = 0.5))+
   # facet_grid(.~site)
-=======
-  summarize(netabundance=sum(abundance))%>%
-  mutate(cpue=(netabundance/effort)*30)%>%
-  data.frame()
->>>>>>> b82e8029f4c9b6d4d11a2c96f8d69c822efd94a6
+# =======
+  # summarize(netabundance=sum(abundance))%>%
+  # mutate(cpue=(netabundance/effort)*30)%>%
+  # data.frame()
+# >>>>>>> b82e8029f4c9b6d4d11a2c96f8d69c822efd94a6
