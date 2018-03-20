@@ -50,14 +50,41 @@ str(arcgn)
 #Summary by site and CPUE
 arcgnsum<-arcgn%>%filter(!is.na(common_name), site %in% c("Tideside","Lakeside"))%>%
   group_by(date, site, common_name, meshsize_inch, effort)%>%
+  summarize(netabundance=sum(abundance))
+
+# mutate(cpue=(netabundance/effort)*30)%>%
+arcgnsum<-arcgnsum %>%
+  group_by(date,common_name) %>%
+  summarize(netdayeffort=sum(effort),netdayabundance=sum(netabundance)) %>%
+  mutate(cpue=(netdayabundance/netdayeffort))
+
+#filter for target species, aka Alewife
+arcA<-arcgnsum%>%filter(common_name=="Alewife") 
+m1 <- lm(cpue~date,data=arcA)
+summary(m1)
+ggplot(arcA,aes(date,cpue)) +
+  geom_point()
+
+ggplot(arcA,aes(x=date,y=cpue))+
+  geom_point(size=3)
+  # geom_line()+
+  # geom_smooth()+
+  # scale_x_date(date_labels = "%b %d",date_breaks = "2 week")+
+  # xlab("Date")+
+  # ylab("CPUE (Fish/30 Min)")+
+  # theme_bw(12)+
+  # theme(axis.text.x = element_text(angle = 90, vjust = 0.5))+
+  # facet_grid(.~site) 
   summarize(netabundance=sum(abundance))%>%
   mutate(cpue=(netabundance/effort)*30)%>%
   data.frame()
-#------------------------------------------------------------------------------------
-#Model CPUE: variables
-#Predictive variable: time of year/ time of day/tide height/temp
-#Response variable: relative CPUE per mesh size (catch/"effort", defined as gillnet set time)
-#CPUE --> Time net is set in water/# fish caught
-#------------------------------------------------------------------------
-
-
+#----------------------------------------
+  arcfish3<-arcfish%>%filter(site %in% c("Lakeside","Tideside"), !is.na(surfacetemp_fishfinder_farenheit))%>%
+    group_by(day=floor_date(date, "day"), site)%>%slice(1)%>%summarize(meantemp=mean(surfacetemp_fishfinder_farenheit))%>%data.frame()
+  arcfish3$sstc<-(arcfish3$meantemp-32)/1.8
+  
+  arcA<-arcgnsum%>%filter(common_name=="white") 
+  m1 <- lm(cpue~date,data=arcA)
+  summary(m1)
+  ggplot(arcA,aes(date,cpue)) +
+    geom_point()
