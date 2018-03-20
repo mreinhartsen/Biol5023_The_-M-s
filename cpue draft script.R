@@ -1,4 +1,4 @@
-libary(tidyverse)
+library(tidyverse)
 arcgn<-mydata
 table(arcgn$common_name, useNA = "always")
 arcgn$meshsize_inch
@@ -10,9 +10,7 @@ which(arcgn$fishendtime <0)
 which(arcgn$fishstarttime <0)
 arcgn$dt<-difftime(arcgn$fishendtime,arcgn$fishstarttime)
 which(arcgn$dt >200)
-rcep$medtime<-arcep$starttime+(arcep$endtime-arcep$starttime)/2
-which(arcep$medtime<1.5) #check them
-#Check for fishstart and end times that are NA
+
 which(is.na(arcep$fishstarttime))
 which(is.na(arcep$fishendtime))
 #Replace fish start/end times with medtime (median time of the day)

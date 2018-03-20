@@ -68,15 +68,3 @@ arcgnsum<-arcgn%>%filter(!is.na(common_name), site %in% c("Tideside","Lakeside")
   summarize(netabundance=sum(abundance))%>%
   mutate(cpue=(netabundance/effort)*30)%>%
   data.frame()
-#filter for target species, aka Alewife
-arcA<-arcgnsum%>%filter(common_name=="Gaspereau")
-ggplot(arcA,aes(x=as.Date(week),y=cpue))+
-  geom_point(aes(shape=site),size=3)+
-  geom_line()+
-  geom_smooth()+
-  scale_x_date(date_labels = "%b %d",date_breaks = "2 week")+
-  xlab("Date")+
-  ylab("CPUE (Fish/30 Min)")+
-  theme_bw(12)+
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5))+
-  facet_grid(~.site) 
