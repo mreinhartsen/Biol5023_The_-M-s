@@ -1,6 +1,8 @@
-library(tidyverse)
+# library(tidyverse)
 library(lubridate)
-arcfish<- read.delim("../Data/Working/ARC_FINAL_14Feb2018.txt", na.strings = c("NA",""))
+library(dplyr)
+library(ggplot2)
+arcfish<- read.delim("ARC_FINAL_18Jan2018.txt", na.strings = c("NA",""))
 
 # Create Dates and Times --------------------------------------------------
 names(arcfish)
@@ -65,18 +67,32 @@ str(arcgn)
 #Summary by
 arcgnsum<-arcgn%>%filter(!is.na(common_name), site %in% c("Tideside","Lakeside"))%>%
   group_by(date, site, common_name, meshsize_inch, effort)%>%
-  summarize(netabundance=sum(abundance))%>%
-  mutate(cpue=(netabundance/effort)*30)%>%
-  data.frame()
+  summarize(netabundance=sum(abundance))
+
+  # mutate(cpue=(netabundance/effort)*30)%>%
+arcgnsum<-arcgnsum %>%
+  group_by(date,common_name) %>%
+  summarize(netdayeffort=sum(effort),netdayabundance=sum(netabundance)) %>%
+  mutate(cpue=(netdayabundance/netdayeffort))
+
 #filter for target species, aka Alewife
-arcA<-arcgnsum%>%filter(common_name=="Gaspereau")
-ggplot(arcA,aes(x=as.Date(week),y=cpue))+
-  geom_point(aes(shape=site),size=3)+
-  geom_line()+
-  geom_smooth()+
-  scale_x_date(date_labels = "%b %d",date_breaks = "2 week")+
-  xlab("Date")+
-  ylab("CPUE (Fish/30 Min)")+
-  theme_bw(12)+
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5))+
-  facet_grid(~.site) 
+arcA<-arcgnsum%>%filter(common_name=="Alewife") 
+
+
+
+m1 <- lm(cpue~date,data=arcA)
+summary(m1)
+ggplot(arcA,aes(date,cpue)) +
+  geom_point()
+
+
+ggplot(arcA,aes(x=date,y=cpue))+
+  geom_point(size=3)
+  # geom_line()+
+  # geom_smooth()+
+  # scale_x_date(date_labels = "%b %d",date_breaks = "2 week")+
+  # xlab("Date")+
+  # ylab("CPUE (Fish/30 Min)")+
+  # theme_bw(12)+
+  # theme(axis.text.x = element_text(angle = 90, vjust = 0.5))+
+  # facet_grid(.~site) 
