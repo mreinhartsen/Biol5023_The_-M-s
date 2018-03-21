@@ -101,10 +101,10 @@ ggplot(m2fitted) +
 
 # Cannot do binomial on relative abundance index!!!
 
-# m3 <- glm(cpue~date,data=arcA, family = "binomial")
-# summary(m3)
-# m3fitted =data.frame(arcA,pred=m3$fitted)
-#
+ m3 <- glm(cpue~date,data=arcA, family = "binomial")
+ summary(m3)
+ m3fitted =data.frame(arcA,pred=m3$fitted)
+
 #
 # ggplot(m3fitted) +
 #   geom_point(aes(date,cpue))+
@@ -125,4 +125,8 @@ ggplot(arcA,aes(x=date,y=cpue))+
   # summarize(netabundance=sum(abundance))%>%
   # mutate(cpue=(netabundance/effort)*30)%>%
   # data.frame()
-# >>>>>>> b82e8029f4c9b6d4d11a2c96f8d69c822efd94a6
+
+
+plot(m2)
+
+
