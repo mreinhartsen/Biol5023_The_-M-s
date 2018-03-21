@@ -84,8 +84,9 @@ m1 <- lm(cpue~date,data=arcA)
 summary(m1)
 m1fitted =data.frame(arcA,pred=m1$fitted)
 
+plot(m1)
 
-ggplot(m1fitted) +
+m1 <- ggplot(m1fitted) +
   geom_point(aes(date,cpue))+
   geom_line(aes(date,pred))
 
@@ -94,8 +95,9 @@ m2 <- glm(cpue~date,data=arcA, family = "poisson")
 summary(m2)
 m2fitted =data.frame(arcA,pred=m2$fitted)
 
+plot(m2)
 
-ggplot(m2fitted) +
+m2plot <- gplot(m2fitted) +
   geom_point(aes(date,cpue))+
   geom_line(aes(date,pred))
 
@@ -109,10 +111,6 @@ ggplot(m2fitted) +
 # ggplot(m3fitted) +
 #   geom_point(aes(date,cpue))+
 #   geom_line(aes(date,pred))
-
-
-ggplot(arcA,aes(x=date,y=cpue))+
-  geom_point(size=3)
   # geom_line()+
   # geom_smooth()+
   # scale_x_date(date_labels = "%b %d",date_breaks = "2 week")+
