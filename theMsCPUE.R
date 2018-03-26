@@ -119,8 +119,4 @@ ggplot(m2fitted) +
   # theme_bw(12)+
   # theme(axis.text.x = element_text(angle = 90, vjust = 0.5))+
   # facet_grid(.~site)
-# =======
-  # summarize(netabundance=sum(abundance))%>%
-  # mutate(cpue=(netabundance/effort)*30)%>%
-  # data.frame()
-# >>>>>>> b82e8029f4c9b6d4d11a2c96f8d69c822efd94a6
+
