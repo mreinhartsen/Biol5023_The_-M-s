@@ -80,13 +80,13 @@ arcA<-arcgnsum%>%filter(common_name=="Alewife")
 
 
 
-m1 <- lm(cpue~date,data=arcA)
+m1 <- glm(cpue~date,data=arcA, family = "gaussian")
 summary(m1)
 m1fitted =data.frame(arcA,pred=m1$fitted)
 
 plot(m1)
 
-m1 <- ggplot(m1fitted) +
+ggplot(m1fitted) +
   geom_point(aes(date,cpue))+
   geom_line(aes(date,pred))
 
@@ -97,7 +97,7 @@ m2fitted =data.frame(arcA,pred=m2$fitted)
 
 plot(m2)
 
-m2plot <- gplot(m2fitted) +
+ggplot(m2fitted) +
   geom_point(aes(date,cpue))+
   geom_line(aes(date,pred))
 
