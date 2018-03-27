@@ -2,6 +2,10 @@
 library(lubridate)
 library(dplyr)
 library(ggplot2)
+library(gam)
+library(mgcv)
+library(effects)
+
 arcfish<- read.delim("ARC_FINAL_14Feb2018.txt", na.strings = c("NA",""))
 
 # Create Dates and Times --------------------------------------------------
@@ -23,14 +27,15 @@ dt<-with(arcfish,paste(timein_year,timeout_month,timeout_day,timeout_hour,timeou
 arcfish$fishendtime<-ymd_hm(dt,tz="America/Halifax")
 arcfish$time<-arcfish$endtime-arcfish$starttime
 
-arcfish2<-arcfish%>%filter(site %in% c("Lakeside","Tideside"))%>%
-group_by(date, site)%>%slice(1)%>%summarize(sumtime=sum(time))%>%data.frame()
+arcfish2<-arcfish%>%filter(site %in% c("Lakeside","Tideside")) %>%
+group_by(date, site) %>% slice(1) %>% summarize(sumtime=sum(time)) %>% data.frame()
 #break down effort(time) by week
-arcfish2<-arcfish%>%filter(site %in% c("Lakeside","Tideside"))%>%
-  group_by(week=floor_date(date, "week"), site)%>%slice(1)%>%summarize(sumtime=sum(time))%>%data.frame()
+arcfish2<-arcfish %>% filter(site %in% c("Lakeside","Tideside")) %>%
+  group_by(week=floor_date(date, "week"), site) %>% slice(1) %>% summarize(sumtime=sum(time)) %>% data.frame()
 #Project Fishing effort
 ggplot(arcfish2, aes(x=as.Date(week), y=sumtime))+
   geom_point(aes(shape=site),size=4)+
+  # geom_bar(aes(fill=site), stat="identity")+
   geom_bar(aes(fill=site), stat="identity")+
   scale_x_date(date_labels = "%b %d",date_breaks = "2 week")+
   xlab("Date")+
@@ -75,26 +80,62 @@ arcgnsum<-arcgnsum %>%
   summarize(netdayeffort=sum(effort),netdayabundance=sum(netabundance)) %>%
   mutate(cpue=(netdayabundance/netdayeffort))
 
+<<<<<<< HEAD
 #filter for target species, aka Alewife
 arcA<-arcgnsum%>%filter(common_name=="Alewife")
 
 m1 <- lm(cpue~date,data=arcA)
+=======
+#filter for target species, pick one
+arcA<-arcgnsum%>%filter(common_name=="Alewife") #N = 32
+#arcA<-arcgnsum%>%filter(common_name=="Rainbow Smelt") #N = 7
+#arcA<-arcgnsum%>%filter(common_name=="White Sucker") #N = 19
+#arcA<-arcgnsum%>%filter(common_name=="White Perch") #N = 25
+#arcA<-arcgnsum%>%filter(common_name=="Striped Bass") #N = 37
+#arcA<-arcgnsum%>%filter(common_name=="Smallmouth Bass") #N = 2
+#arcA<-arcgnsum%>%filter(common_name=="American Smooth Flounder") #N = 4
+#arcA<-arcgnsum%>%filter(common_name=="Atlantic Tomcod") #N = 3
+#arcA<-arcgnsum%>%filter(common_name=="Summer Flounder") #N = 1
+#arcA<-arcgnsum%>%filter(common_name=="Blueback Herring") #N = 1
+#arcA<-arcgnsum%>%filter(common_name=="Atlantic Sturgeon") #N = 1
+#arcA<-arcgnsum%>%filter(common_name=="American Shad") #N = 5
+#arcA<-arcgnsum%>%filter(common_name=="American Eel") #N = 1
+#arcA<-arcgnsum%>%filter(common_name=="Winter Flounder") #N = 2
+#arcA<-arcgnsum%>%filter(common_name=="Sea Lamprey") #N = 1
+
+cat("N = ",nrow(arcA),"\n") # prints the number of days the fish was caught
+
+stopifnot(nrow(arcA) >= 10) # stops program if fish were caught under 10 days total
+
+CPUEMAX <- max(arcA$cpue)
+ArcMax <- filter(arcA, cpue == CPUEMAX)
+arcA$days_since_Max <- as.numeric(abs(as.Date(as.character(arcA$date), format="%Y-%m-%d") - as.Date(as.character(ArcMax$date), format="%Y-%m-%d")))
+arcA$days_since_Maxsigned <- as.numeric(as.Date(as.character(arcA$date), format="%Y-%m-%d") - as.Date(as.character(ArcMax$date), format="%Y-%m-%d"))
+
+#Linear model
+m1 <- glm(netdayabundance+offset(netdayeffort)~days_since_Max,data=arcA, family = "gaussian")
+>>>>>>> c07da34972a4d8ce6d2a324a26cafd5b042d3b63
 summary(m1)
 m1fitted =data.frame(arcA,pred=m1$fitted)
 
 plot(m1)
 
-m1 <- ggplot(m1fitted) +
-  geom_point(aes(date,cpue))+
-  geom_line(aes(date,pred))
+ggplot(m1fitted) +
+  geom_point(aes(days_since_Max,netdayabundance))+
+  geom_line(aes(days_since_Max,pred))
 
+# ggplot(m1fitted) +
+#   geom_point(aes(date,netdayabundance))+
+#   geom_line(aes(date,pred))
 
-m2 <- glm(cpue~date,data=arcA, family = "poisson")
+#Poisson model
+m2 <- glm(netdayabundance+offset(netdayeffort)~days_since_Max,data=arcA, family = "poisson")
 summary(m2)
 m2fitted =data.frame(arcA,pred=m2$fitted)
 
 plot(m2)
 
+<<<<<<< HEAD
 m2plot <- ggplot(m2fitted) +
   geom_point(aes(date,cpue))+
   geom_line(aes(date,pred))
@@ -108,16 +149,17 @@ m2plot <- ggplot(m2fitted) +
 #
 # ggplot(m3fitted) +
 #   geom_point(aes(date,cpue))+
-#   geom_line(aes(date,pred))
-  # geom_line()+
-  # geom_smooth()+
-  # scale_x_date(date_labels = "%b %d",date_breaks = "2 week")+
-  # xlab("Date")+
-  # ylab("CPUE (Fish/30 Min)")+
-  # theme_bw(12)+
-  # theme(axis.text.x = element_text(angle = 90, vjust = 0.5))+
-  # facet_grid(.~site)
+=======
+ggplot(m2fitted) +
+  geom_point(aes(days_since_Max,netdayabundance))+
+  geom_line(aes(days_since_Max,pred))
 
+# ggplot(m2fitted) +
+#   geom_point(aes(date,netdayabundance))+
+>>>>>>> c07da34972a4d8ce6d2a324a26cafd5b042d3b63
+#   geom_line(aes(date,pred))
+
+<<<<<<< HEAD
 # =======
   # summarize(netabundance=sum(abundance))%>%
   # mutate(cpue=(netabundance/effort)*30)%>%
@@ -127,3 +169,21 @@ m2plot <- ggplot(m2fitted) +
 plot(m2)
 
 
+=======
+#GAM
+
+m5 <- gam(netdayabundance+offset(netdayeffort)~days_since_Max,data=arcA)
+summary(m5)
+m5fitted =data.frame(arcA,pred=m5$fitted)
+
+
+ggplot(m5fitted) +
+  geom_point(aes(days_since_Max,netdayabundance))+
+  geom_line(aes(days_since_Max,pred))
+
+plot(allEffects(m5))
+
+m6 <- gam(netdayabundance+offset(netdayeffort)~days_since_Max,data=arcA, family = "poisson")
+summary(m5)
+m5fitted =data.frame(arcA,pred=m5$fitted)
+>>>>>>> c07da34972a4d8ce6d2a324a26cafd5b042d3b63
