@@ -1,7 +1,11 @@
 # library(tidyverse)
 library(lubridate)
-library(dplyr)
-library(ggplot2)
+library(tidyverse)
+library(gam)
+library(mgcv)
+library(effects)
+install.packages("visreg")
+library(visreg)
 arcfish<- read.delim("ARC_FINAL_14Feb2018.txt", na.strings = c("NA",""))
 
 # Create Dates and Times --------------------------------------------------
@@ -24,7 +28,7 @@ arcfish$fishendtime<-ymd_hm(dt,tz="America/Halifax")
 arcfish$time<-arcfish$endtime-arcfish$starttime
 
 arcfish2<-arcfish%>%filter(site %in% c("Lakeside","Tideside"))%>%
-group_by(date, site)%>%slice(1)%>%summarize(sumtime=sum(time))%>%data.frame()
+  group_by(date, site)%>%slice(1)%>%summarize(sumtime=sum(time))%>%data.frame()
 #break down effort(time) by week
 arcfish2<-arcfish%>%filter(site %in% c("Lakeside","Tideside"))%>%
   group_by(week=floor_date(date, "week"), site)%>%slice(1)%>%summarize(sumtime=sum(time))%>%data.frame()
@@ -53,7 +57,15 @@ table(arcgn$common_name, useNA = "always")
 arcgn$meshsize_inch
 arcgn$meshsize_inch[arcgn$meshsize_inch %in% c("2.78","2.875","2.89","2.895")]<-"2.895"
 arcgn$meshsize_inch[arcgn$meshsize_inch %in% c("G","N")]<-"1.5"
-arcgn$meshsize_inch<-factor(arcgn$meshsize_inch)
+arcgn$meshsize_inch<-as.integer(arcgn$meshsize_inch)
+arcgn$airtemp_c<-as.integer(arcgn$airtemp_c)
+arcgn$tl_cm<-as.integer(arcgn$tl_cm)
+arcgn$surfacetemp_fishfinder_farenheit<-as.integer(arcgn$surfacetemp_fishfinder_farenheit)
+table(arcgn$surfacetemp_fishfinder_farenheit,useNA="no")
+table(arcgn$percentcloudcover,useNA="no")
+table(arcgn$airtemp_c,useNA="no")
+table(arcgn$tl_cm,useNA="no")
+table(arcgn$sex,useNA="no")
 
 which(arcgn$fishendtime <0)
 which(arcgn$fishstarttime <0)
@@ -66,68 +78,60 @@ head(arcgn)
 str(arcgn)
 #Summary by
 arcgnsum<-arcgn%>%filter(!is.na(common_name), site %in% c("Tideside","Lakeside"))%>%
-  group_by(date, site, common_name, meshsize_inch, effort)%>%
+  group_by(date, effort,common_name,airtemp_c,percentcloudcover,surfacetemp_fishfinder_farenheit)%>%
   summarize(netabundance=sum(abundance))
-
-  # mutate(cpue=(netabundance/effort)*30)%>%
+# mutate(cpue=(netabundance/effort)*30)%>%
 arcgnsum<-arcgnsum %>%
-  group_by(date,common_name) %>%
+  group_by(date,effort,common_name,airtemp_c,percentcloudcover,surfacetemp_fishfinder_farenheit) %>%
   summarize(netdayeffort=sum(effort),netdayabundance=sum(netabundance)) %>%
   mutate(cpue=(netdayabundance/netdayeffort))
+#non-cpue related
+arcgnsum3<-arcgn%>%filter(!is.na(common_name), site %in% c("Tideside","Lakeside"))%>%
+  group_by(date, effort,common_name,abundance,tl_cm,surfacetemp_fishfinder_farenheit, airtemp_c,percentcloudcover)%>%
+  summarize(netabundance=sum(abundance))
 
 #filter for target species, aka Alewife
-arcA<-arcgnsum%>%filter(common_name=="Alewife")
+arcA<-arcgnsum%>%filter(common_name=="Alewife")%>%data.frame()
+arcSB<-arcgnsum%>%filter(common_name=="Striped Bass")%>%data.frame()
+arcWP<-arcgnsum%>%filter(common_name=="White Perch")%>%data.frame()
 
-
-
-m1 <- lm(cpue~date,data=arcA)
+#linear model
+m1 <- lm(cpue~ + percentcloudcover + surfacetemp_fishfinder_farenheit + airtemp_c, data=arcgnsum)
 summary(m1)
-m1fitted =data.frame(arcA,pred=m1$fitted)
+plot(allEffects(m1))
 
-plot(m1)
+#alewife
+m1b <- lm(cpue~airtemp_c + percentcloudcover + surfacetemp_fishfinder_farenheit, data=arcA)
+summary(m1b)
+visreg(m1b,"percentcloudcover")
+plot(m1b)
+plot(allEffects(m1b))
 
-m1 <- ggplot(m1fitted) +
-  geom_point(aes(date,cpue))+
-  geom_line(aes(date,pred))
-
-
-m2 <- glm(cpue~date,data=arcA, family = "poisson")
+#-----------------------------------
+#Generalized additived model
+m2 <- gam(cpue~airtemp_c + percentcloudcover + surfacetemp_fishfinder_farenheit,link=date(),data=arcgnsum2)
 summary(m2)
-m2fitted =data.frame(arcA,pred=m2$fitted)
+visreg(m2)
+plot(allEffects(m2))
 
-plot(m2)
+# Now let's look at the "peak" run in the spring based on our abundance data
+arcgnsum2<-arcA%>%filter(cpue<2)%>%filter(date >= "2017-04-25"|date <= "2017-05-25")%>%filter(airtemp_c>0)%>%filter(!is.na(percentcloudcover))
+ggplot(arcgnsum2, aes(x=airtemp_c, y=cpue))+
+  geom_point()
 
-m2plot <- gplot(m2fitted) +
-  geom_point(aes(date,cpue))+
-  geom_line(aes(date,pred))
+m4<-gam(cpue~airtemp_c + percentcloudcover + surfacetemp_fishfinder_farenheit,link=meshsize_inch,data=arcgnsum2)
+summary(m4)
+coefsc = coefficients(m4); coefsc
+plot(m4)
+gam.check(m4)
+plot(allEffects(m4))
 
-# Cannot do binomial on relative abundance index!!!
+#---------------------
+m5<-lm(netdayabundance + offset(netdayeffort)~airtemp_c,data=arcgnsum2)
+summary(m5)
 
- m3 <- glm(cpue~date,data=arcA, family = "binomial")
- summary(m3)
- m3fitted =data.frame(arcA,pred=m3$fitted)
-
-#
-# ggplot(m3fitted) +
-#   geom_point(aes(date,cpue))+
-#   geom_line(aes(date,pred))
-  # geom_line()+
-  # geom_smooth()+
-  # scale_x_date(date_labels = "%b %d",date_breaks = "2 week")+
-  # xlab("Date")+
-  # ylab("CPUE (Fish/30 Min)")+
-  # theme_bw(12)+
-  # theme(axis.text.x = element_text(angle = 90, vjust = 0.5))+
-  # facet_grid(.~site)
-<<<<<<< HEAD
-# =======
-  # summarize(netabundance=sum(abundance))%>%
-  # mutate(cpue=(netabundance/effort)*30)%>%
-  # data.frame()
-
-
-plot(m2)
-
-=======
->>>>>>> d05e8f24f43b0b5af1f71d132ad7f370a253dee8
-
+m3 <- lm(cpue~airtemp_c + percentcloudcover,data=arcSB)
+summary(m3)
+plot(allEffects(m3))
+#---------------------
+  #fit model with abundance; use repsonse of effort offset
