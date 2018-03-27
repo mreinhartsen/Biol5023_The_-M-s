@@ -81,6 +81,7 @@ arcgnsum<-arcgn%>%filter(!is.na(common_name), site %in% c("Tideside","Lakeside")
   group_by(date, effort,common_name,airtemp_c,percentcloudcover,surfacetemp_fishfinder_farenheit)%>%
   summarize(netabundance=sum(abundance))
 # mutate(cpue=(netabundance/effort)*30)%>%
+
 arcgnsum<-arcgnsum %>%
   group_by(date,effort,common_name,airtemp_c,percentcloudcover,surfacetemp_fishfinder_farenheit) %>%
   summarize(netdayeffort=sum(effort),netdayabundance=sum(netabundance)) %>%

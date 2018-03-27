@@ -77,15 +77,16 @@ arcgnsum<-arcgn%>%filter(!is.na(common_name), site %in% c("Tideside","Lakeside")
   # mutate(cpue=(netabundance/effort)*30)%>%
 arcgnsum<-arcgnsum %>%
   group_by(date,common_name) %>%
-  summarize(netdayeffort=sum(effort),netdayabundance=sum(netabundance)) %>%
-  mutate(cpue=(netdayabundance/netdayeffort))
+  summarize(netdayabundance=sum(netabundance)) %>%
+  # mutate(cpue=(netdayabundance/netdayeffort)) %>%
+  mutate(cpue=(netdayabundance/effort)*30)
 
-<<<<<<< HEAD
+
 #filter for target species, aka Alewife
 arcA<-arcgnsum%>%filter(common_name=="Alewife")
 
 m1 <- lm(cpue~date,data=arcA)
-=======
+
 #filter for target species, pick one
 arcA<-arcgnsum%>%filter(common_name=="Alewife") #N = 32
 #arcA<-arcgnsum%>%filter(common_name=="Rainbow Smelt") #N = 7
@@ -113,12 +114,11 @@ arcA$days_since_Max <- as.numeric(abs(as.Date(as.character(arcA$date), format="%
 arcA$days_since_Maxsigned <- as.numeric(as.Date(as.character(arcA$date), format="%Y-%m-%d") - as.Date(as.character(ArcMax$date), format="%Y-%m-%d"))
 
 #Linear model
-<<<<<<< HEAD
+
 m1 <- glm(netdayabundance~days_since_Max+offset(netdayeffort),data=arcA, family = "gaussian")
-=======
+
 m1 <- glm(netdayabundance+offset(netdayeffort)~days_since_Max,data=arcA, family = "gaussian")
->>>>>>> c07da34972a4d8ce6d2a324a26cafd5b042d3b63
->>>>>>> d34222e77dbfecb147e9da462c205dafdf5359c4
+
 summary(m1)
 m1fitted =data.frame(arcA,pred=m1$fitted)
 
@@ -139,7 +139,7 @@ m2fitted =data.frame(arcA,pred=m2$fitted)
 
 plot(m2)
 
-<<<<<<< HEAD
+
 m2plot <- ggplot(m2fitted) +
   geom_point(aes(date,cpue))+
   geom_line(aes(date,pred))
@@ -153,17 +153,17 @@ m2plot <- ggplot(m2fitted) +
 #
 # ggplot(m3fitted) +
 #   geom_point(aes(date,cpue))+
-=======
+
 ggplot(m2fitted) +
   geom_point(aes(days_since_Max,netdayabundance))+
   geom_line(aes(days_since_Max,pred))
 
 # ggplot(m2fitted) +
 #   geom_point(aes(date,netdayabundance))+
->>>>>>> c07da34972a4d8ce6d2a324a26cafd5b042d3b63
+
 #   geom_line(aes(date,pred))
 
-<<<<<<< HEAD
+
 # =======
   # summarize(netabundance=sum(abundance))%>%
   # mutate(cpue=(netabundance/effort)*30)%>%
@@ -173,7 +173,7 @@ ggplot(m2fitted) +
 plot(m2)
 
 
-=======
+
 #GAM
 
 m5 <- gam(netdayabundance~days_since_Max+offset(netdayeffort),data=arcA)
@@ -187,7 +187,7 @@ ggplot(m5fitted) +
 
 plot(allEffects(m5))
 
-<<<<<<< HEAD
+
 #GAM family poisson
 m6 <- gam(netdayabundance~s(days_since_Max), offset = log(netdayeffort), data=arcA, family = "poisson", fit = TRUE)
 summary(m6)
@@ -224,9 +224,8 @@ ggplot(m6fitted) +
 m7 <- gam(netdayabundance+offset(netdayeffort)~days_since_Max,data=arcA, family = "gamma")
 summary(m7)
 m6fitted =data.frame(arcA,pred=m6$fitted)
-=======
+
 m6 <- gam(netdayabundance+offset(netdayeffort)~days_since_Max,data=arcA, family = "poisson")
 summary(m5)
 m5fitted =data.frame(arcA,pred=m5$fitted)
->>>>>>> c07da34972a4d8ce6d2a324a26cafd5b042d3b63
->>>>>>> d34222e77dbfecb147e9da462c205dafdf5359c4
+
