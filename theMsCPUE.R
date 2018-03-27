@@ -107,7 +107,7 @@ arcA$days_since_Max <- as.numeric(abs(as.Date(as.character(arcA$date), format="%
 arcA$days_since_Maxsigned <- as.numeric(as.Date(as.character(arcA$date), format="%Y-%m-%d") - as.Date(as.character(ArcMax$date), format="%Y-%m-%d"))
 
 #Linear model
-m1 <- glm(netdayabundance+offset(netdayeffort)~days_since_Max,data=arcA, family = "gaussian")
+m1 <- glm(netdayabundance~days_since_Max+offset(netdayeffort),data=arcA, family = "gaussian")
 summary(m1)
 m1fitted =data.frame(arcA,pred=m1$fitted)
 
@@ -122,7 +122,7 @@ ggplot(m1fitted) +
 #   geom_line(aes(date,pred))
 
 #Poisson model
-m2 <- glm(netdayabundance+offset(netdayeffort)~days_since_Max,data=arcA, family = "poisson")
+m2 <- glm(netdayabundance~days_since_Max+offset(log(netdayeffort)),data=arcA, family = "poisson")
 summary(m2)
 m2fitted =data.frame(arcA,pred=m2$fitted)
 
@@ -138,7 +138,7 @@ ggplot(m2fitted) +
 
 #GAM
 
-m5 <- gam(netdayabundance+offset(netdayeffort)~days_since_Max,data=arcA)
+m5 <- gam(netdayabundance~days_since_Max+offset(netdayeffort),data=arcA)
 summary(m5)
 m5fitted =data.frame(arcA,pred=m5$fitted)
 
@@ -149,6 +149,39 @@ ggplot(m5fitted) +
 
 plot(allEffects(m5))
 
-m6 <- gam(netdayabundance+offset(netdayeffort)~days_since_Max,data=arcA, family = "poisson")
-summary(m5)
-m5fitted =data.frame(arcA,pred=m5$fitted)
+#GAM family poisson
+m6 <- gam(netdayabundance~s(days_since_Max), offset = log(netdayeffort), data=arcA, family = "poisson", fit = TRUE)
+summary(m6)
+m6fitted =data.frame(arcA,pred=m6$fitted)
+
+#playing with GAM
+plot(m6,pages=1,residuals=TRUE)
+plot(m6,pages=1,seWithMean=TRUE)
+gam.check(m6)
+
+G <- gam(netdayabundance~s(days_since_Max),fit=FALSE,data=arcA, family = "poisson")
+b <- gam(G=G)
+print(b)
+
+G <- gam(netdayabundance~s(days_since_Max),fit=FALSE,data=arcA,sp=b$sp,family = "poisson")
+G$lsp0 <- log(b$sp*10)
+gam(G=G)
+
+b0 <- gam(netdayabundance~s(days_since_Max),data=arcA,method="REML")
+plot(b0,pages=1,scheme=1,unconditional=TRUE)
+
+bt <- gam(netdayabundance~te(days_since_Max,k=7),data=arcA,
+          method="REML")
+plot(bt,pages=1)
+plot(bt,pages=1,scheme=2) ## alternative visualization
+AIC(b0,bt)
+
+##### plot GAM
+ggplot(m6fitted) +
+  geom_point(aes(days_since_Max,netdayabundance))+
+  geom_line(aes(days_since_Max,pred))
+
+
+m7 <- gam(netdayabundance+offset(netdayeffort)~days_since_Max,data=arcA, family = "gamma")
+summary(m7)
+m6fitted =data.frame(arcA,pred=m6$fitted)
