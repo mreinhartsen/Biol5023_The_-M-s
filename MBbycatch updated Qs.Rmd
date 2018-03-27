@@ -9,7 +9,7 @@ Q.1.2 Can we incorporate selectivity into our fishing effort index?
 Biological:
 Q.2. do the variables recorded in the field correlate with catch per unit effort in a pattern supported by lit? (aka tidal height range or time of year) 
 Predictive variable: time of year/ time of day/tide height
-Response variable: relative CPU per mesh size (catch/"effort", defined as gillnet set time)
+Response variable: relative CPUE per mesh size (catch/"effort", defined as gillnet set time)
 
 ---
 ```{r}

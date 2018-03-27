@@ -78,8 +78,6 @@ arcgnsum<-arcgnsum %>%
 #filter for target species, aka Alewife
 arcA<-arcgnsum%>%filter(common_name=="Alewife")
 
-
-
 m1 <- lm(cpue~date,data=arcA)
 summary(m1)
 m1fitted =data.frame(arcA,pred=m1$fitted)
@@ -97,7 +95,7 @@ m2fitted =data.frame(arcA,pred=m2$fitted)
 
 plot(m2)
 
-m2plot <- gplot(m2fitted) +
+m2plot <- ggplot(m2fitted) +
   geom_point(aes(date,cpue))+
   geom_line(aes(date,pred))
 
@@ -119,7 +117,7 @@ m2plot <- gplot(m2fitted) +
   # theme_bw(12)+
   # theme(axis.text.x = element_text(angle = 90, vjust = 0.5))+
   # facet_grid(.~site)
-<<<<<<< HEAD
+
 # =======
   # summarize(netabundance=sum(abundance))%>%
   # mutate(cpue=(netabundance/effort)*30)%>%
@@ -128,6 +126,4 @@ m2plot <- gplot(m2fitted) +
 
 plot(m2)
 
-=======
->>>>>>> d05e8f24f43b0b5af1f71d132ad7f370a253dee8
 
