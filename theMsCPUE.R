@@ -114,11 +114,16 @@ arcA$days_since_Max <- as.numeric(abs(as.Date(as.character(arcA$date), format="%
 arcA$days_since_Maxsigned <- as.numeric(as.Date(as.character(arcA$date), format="%Y-%m-%d") - as.Date(as.character(ArcMax$date), format="%Y-%m-%d"))
 
 #Linear model
+<<<<<<< HEAD
 
 m1 <- glm(netdayabundance~days_since_Max+offset(netdayeffort),data=arcA, family = "gaussian")
 
 m1 <- glm(netdayabundance+offset(netdayeffort)~days_since_Max,data=arcA, family = "gaussian")
 
+=======
+m1 <- glm(netdayabundance+offset(netdayeffort)~days_since_Max,data=arcA, family = "gaussian")
+>>>>>>> c07da34972a4d8ce6d2a324a26cafd5b042d3b63
+>>>>>>> aabd41e8b05fc32e71e9535a791d8d2f0f2a1508
 summary(m1)
 m1fitted =data.frame(arcA,pred=m1$fitted)
 
@@ -133,7 +138,7 @@ ggplot(m1fitted) +
 #   geom_line(aes(date,pred))
 
 #Poisson model
-m2 <- glm(netdayabundance~days_since_Max+offset(log(netdayeffort)),data=arcA, family = "poisson")
+m2 <- glm(netdayabundance+offset(netdayeffort)~days_since_Max,data=arcA, family = "poisson")
 summary(m2)
 m2fitted =data.frame(arcA,pred=m2$fitted)
 
@@ -228,4 +233,8 @@ m6fitted =data.frame(arcA,pred=m6$fitted)
 m6 <- gam(netdayabundance+offset(netdayeffort)~days_since_Max,data=arcA, family = "poisson")
 summary(m5)
 m5fitted =data.frame(arcA,pred=m5$fitted)
+<<<<<<< HEAD
 
+=======
+>>>>>>> c07da34972a4d8ce6d2a324a26cafd5b042d3b63
+>>>>>>> aabd41e8b05fc32e71e9535a791d8d2f0f2a1508

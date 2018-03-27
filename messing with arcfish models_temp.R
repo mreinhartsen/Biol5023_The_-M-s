@@ -97,23 +97,31 @@ arcSB<-arcgnsum%>%filter(common_name=="Striped Bass")%>%data.frame()
 arcWP<-arcgnsum%>%filter(common_name=="White Perch")%>%data.frame()
 
 #linear model
-m1 <- lm(cpue~ + percentcloudcover + surfacetemp_fishfinder_farenheit + airtemp_c, data=arcgnsum)
+m1 <- lm(netdayabundance~ + percentcloudcover + surfacetemp_fishfinder_farenheit + airtemp_c + offset(netdayeffort) data=arcgnsum)
 summary(m1)
+plot(m1)
 plot(allEffects(m1))
 
 #alewife
-m1b <- lm(cpue~airtemp_c + percentcloudcover + surfacetemp_fishfinder_farenheit, data=arcA)
+m1b <- glm(netdayabundance ~airtemp_c + percentcloudcover + surfacetemp_fishfinder_farenheit + offset(log(netdayeffort)), family = "poisson",data=arcgnsum)
 summary(m1b)
-visreg(m1b,"percentcloudcover")
 plot(m1b)
 plot(allEffects(m1b))
 
 #-----------------------------------
 #Generalized additived model
-m2 <- gam(cpue~airtemp_c + percentcloudcover + surfacetemp_fishfinder_farenheit,link=date(),data=arcgnsum2)
+m2 <- gam(netdayabundance~s(airtemp_c) + s(percentcloudcover) + s(surfacetemp_fishfinder_farenheit)+offset(log(netdayeffort)),link=date(),data=arcgnsum)
 summary(m2)
 visreg(m2)
 plot(allEffects(m2))
+
+#m6
+m6<-glm(netdayabundance~s(airtemp_c) + s(percentcloudcover) + s(surfacetemp_fishfinder_farenheit)+offset(log(netdayeffort)),link=date(),family="poisson",data=arcgnsum2)
+summary(m6)
+visreg(m6)
+plot(allEffects(m6))
+plot(m6)
+
 
 # Now let's look at the "peak" run in the spring based on our abundance data
 arcgnsum2<-arcA%>%filter(cpue<2)%>%filter(date >= "2017-04-25"|date <= "2017-05-25")%>%filter(airtemp_c>0)%>%filter(!is.na(percentcloudcover))
